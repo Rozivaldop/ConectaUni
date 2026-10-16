@@ -1,926 +1,236 @@
-// Estado Global da Aplicação
-const appState = {
-    paginaAtual: 'inicio',
-    usuario: {
-        nome: "Ana Souza",
-        curso: "Engenharia de Software",
-        universidade: "UFPE",
-        ano: "2º ano",
-        avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100",
-        status: "green", // green, yellow, red
-        statusTexto: "Vínculo verificado",
-        atualizacao: "2026"
-    },
-    moradias: [
-        {
-            id: 1,
-            titulo: "Quarto em apartamento",
-            cidade: "Recife, PE - Boa Vista",
-            uf: "UFPE",
-            status: "Vínculo verificado",
-            statusCor: "green",
-            detalhes: ["1 quarto", "Mobiliado", "Wi-Fi"],
-            preco: "R$ 850/mês",
-            imagem: "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?q=80&w=500",
-            descricao: "Excelente apartamento próximo à UFPE. Quarto mobiliado com escrivaninha, cama box e armário embutido. Condomínio incluso.",
-            contato: "Carlos Silva (UFPE)"
-        },
-        {
-            id: 2,
-            titulo: "Vaga em república",
-            cidade: "Recife, PE - UFPE",
-            uf: "UFPE",
-            status: "Renovação pendente",
-            statusCor: "yellow",
-            detalhes: ["1 vaga", "Mobiliado", "Wi-Fi"],
-            preco: "R$ 650/mês",
-            imagem: "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?q=80&w=500",
-            descricao: "República estudantil jovem e organizada. Vaga em quarto duplo para estudantes de tecnologia/engenharia.",
-            contato: "Mariana Costa (UFPE)"
-        },
-        {
-            id: 3,
-            titulo: "Quarto em casa compartilhada",
-            cidade: "Natal, RN - UFRN",
-            uf: "UFRN",
-            status: "Vínculo verificado",
-            statusCor: "green",
-            detalhes: ["1 quarto", "Mobiliado", "Wi-Fi"],
-            preco: "R$ 700/mês",
-            imagem: "https://images.unsplash.com/photo-1555854877-bab0e564b8d5?q=80&w=500",
-            descricao: "Casa bem localizada em Lagoa Nova, pertinho do Campus Central da UFRN. Ambiente silencioso para estudos.",
-            contato: "Lucas Medeiros (UFRN)"
-        }
-    ],
-    conversas: {
-        1: {
-            nome: "Carlos Silva",
-            avatar: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100",
-            mensagens: [
-                { remetente: "outro", texto: "Olá Ana! Vi que você tem interesse na vaga de Recife." },
-                { remetente: "eu", texto: "Oi Carlos! Sim, gostaria de saber se o valor do condomínio está incluso." },
-                { remetente: "outro", texto: "Sim! Está tudo incluso no valor de R$ 850." }
-            ]
-        },
-        2: {
-            nome: "Mariana Costa",
-            avatar: "https://images.unsplash.com/photo-1580489944761-15a19d654956?w=100",
-            mensagens: [
-                { remetente: "outro", texto: "Oi Ana! Tudo bem? Quando você pretende fazer a mudança?" }
-            ]
-        }
-    },
-    chatAtivo: 1,
-    notificacoes: [
-        { id: 1, texto: "Carlos Silva respondeu sua mensagem sobre a moradia em Recife.", lida: false, tempo: "Há 10 min" },
-        { id: 2, texto: "Seu documento de vínculo foi verificado com sucesso para 2026.", lida: false, tempo: "Há 2 horas" },
-        { id: 3, texto: "Nova vaga compatível com seu perfil adicionada perto da UFPE.", lida: true, tempo: "Ontem" }
-    ]
-};
+// RECURSOS EXTRAS (carregado depois do script.js: as funções abaixo substituem as versões antigas)
+const IMG_PADRAO = 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?q=80&w=500';
+const TIPOS = ['Quarto em apartamento', 'Vaga em república', 'Quarto em casa compartilhada', 'Kitnet'];
+const opcoesTipo = (todos) => (todos ? '<option value="Todos">Todos</option>' : '') + TIPOS.map(t => `<option>${t}</option>`).join('');
+const precoNum = m => parseInt(String(m.preco).replace(/\./g, '').match(/\d+/)?.[0] || 0, 10);
+const brl = v => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+const vazio = (icone, texto, botao) => `<div class="card-box" style="text-align:center; color:#64748b;"><i class="fa-regular ${icone}" style="font-size:36px; margin-bottom:10px;"></i><p style="font-size:13px; margin-bottom:12px;">${texto}</p>${botao || ''}</div>`;
 
-// Navegação entre Telas
-function navegarPara(pagina) {
-    appState.paginaAtual = pagina;
+// Salva o perfil sempre que for atualizado
+const _salvarPerfilOriginal = salvarPerfil;
+salvarPerfil = function (e) { _salvarPerfilOriginal(e); salvarEstado(); };
 
-    // Atualizar Navegação Visual
-    document.querySelectorAll('.nav-item, .menu-item').forEach(el => el.classList.remove('active'));
-
-    const navEl = document.getElementById(`nav-${pagina}`);
-    const sideEl = document.getElementById(`side-${pagina}`);
-    if (navEl) navEl.classList.add('active');
-    if (sideEl) sideEl.classList.add('active');
-
-    const mainContainer = document.getElementById('main-content');
-
-    switch (pagina) {
-        case 'inicio':
-            renderizarInicio(mainContainer);
-            break;
-        case 'buscar':
-            renderizarBusca(mainContainer);
-            break;
-        case 'mensagens':
-            renderizarMensagens(mainContainer);
-            break;
-        case 'notificacoes':
-            renderizarNotificacoes(mainContainer);
-            break;
-        case 'perfil':
-            renderizarPerfil(mainContainer);
-            break;
-        case 'anuncios':
-            renderizarAnuncios(mainContainer);
-            break;
-        case 'avaliacoes':
-            renderizarAvaliacoes(mainContainer);
-            break;
-        case 'carteira':
-            renderizarCarteira(mainContainer);
-            break;
-        case 'emergencia':
-            renderizarEmergencia(mainContainer);
-            break;
-        case 'configuracoes':
-            renderizarConfiguracoes(mainContainer);
-            break;
-        default:
-            renderizarInicio(mainContainer);
-    }
-
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-}
-
-// 1. TELA INÍCIO
-function renderizarInicio(container) {
-    container.innerHTML = `
-        <section class="hero-banner">
-            <div class="hero-text">
-                <h2>ConectaUni</h2>
-                <h3>Mais do que uma moradia, uma rede de apoio.</h3>
-                <p>Conectamos estudantes que estão chegando a uma nova cidade com quem já está lá. Aqui você encontra moradia, colegas para dividir despesas e pessoas de confiança.</p>
-            </div>
-            <div class="hero-tag">Juntos fica mais fácil!</div>
-        </section>
-
-        <section class="search-box">
-            <h4><i class="fa-solid fa-location-dot"></i> Encontre sua próxima moradia</h4>
-            <form id="search-form-home" class="search-form" onsubmit="executarBuscaHome(event)">
-                <div class="input-group">
-                    <label>Cidade</label>
-                    <input type="text" id="home-cidade" placeholder="Ex: Recife, PE">
-                </div>
-                <div class="input-group">
-                    <label>Universidade</label>
-                    <input type="text" id="home-uf" placeholder="Ex: UFPE, UFRN...">
-                </div>
-                <div class="input-group">
-                    <label>Tipo de moradia</label>
-                    <select id="home-tipo">
-                        <option value="Todos">Todos</option>
-                        <option value="Quarto em apartamento">Quarto em apartamento</option>
-                        <option value="Vaga em república">Vaga em república</option>
-                        <option value="Quarto em casa compartilhada">Quarto em casa compartilhada</option>
-                    </select>
-                </div>
-                <button type="submit" class="btn-search"><i class="fa-solid fa-magnifying-glass"></i> Buscar</button>
-            </form>
-        </section>
-
-        <section class="listings-section">
-            <div class="section-header">
-                <h3><i class="fa-solid fa-house-user"></i> Moradias disponíveis</h3>
-                <span class="link-ver-todas" onclick="navegarPara('buscar')">Ver todas <i class="fa-solid fa-arrow-right"></i></span>
-            </div>
-            <div class="cards-grid" id="home-cards-container"></div>
-        </section>
-
-        <section class="info-blocks-grid">
-            <div class="info-card">
-                <h4>Como funciona?</h4>
-                <div class="steps-grid">
-                    <div class="step-item"><div class="step-icon"><i class="fa-solid fa-user-plus"></i></div><strong>1. Cadastro</strong><span>Insira dados acadêmicos.</span></div>
-                    <div class="step-item"><div class="step-icon"><i class="fa-solid fa-magnifying-glass"></i></div><strong>2. Conexão</strong><span>Ache estudantes compatíveis.</span></div>
-                    <div class="step-item"><div class="step-icon"><i class="fa-regular fa-comments"></i></div><strong>3. Chat</strong><span>Combine detalhes.</span></div>
-                    <div class="step-item"><div class="step-icon"><i class="fa-solid fa-house-flag"></i></div><strong>4. Mudança</strong><span>Inicie sua nova jornada.</span></div>
-                </div>
-            </div>
-            <div class="info-card">
-                <h4>Tecnologias que tornam isso possível</h4>
-                <div class="tech-grid">
-                    <div class="tech-item"><i class="fa-solid fa-database tech-icon"></i><div><strong>Banco de Dados</strong><p>Armazenamento seguro de cadastros e dados.</p></div></div>
-                    <div class="tech-item"><i class="fa-solid fa-location-crosshairs tech-icon"></i><div><strong>Geolocalização</strong><p>Proximidade com a universidade de destino.</p></div></div>
-                    <div class="tech-item"><i class="fa-solid fa-robot tech-icon"></i><div><strong>Inteligência Artificial</strong><p>Recomendação inteligente de compatibilidade.</p></div></div>
-                </div>
-            </div>
-        </section>
-    `;
-    renderizarCards(appState.moradias, 'home-cards-container');
-}
-
+// CARDS (agora com favorito salvo)
 function renderizarCards(lista, containerId) {
     const el = document.getElementById(containerId);
     if (!el) return;
-    el.innerHTML = '';
-
-    if (lista.length === 0) {
-        el.innerHTML = `<p style="grid-column: 1 / -1; color: #64748b; text-align: center; padding: 20px;">Nenhuma moradia encontrada.</p>`;
-        return;
-    }
-
-    lista.forEach(m => {
-        const badgeClass = m.statusCor === 'green' ? 'badge-green' : (m.statusCor === 'yellow' ? 'badge-yellow' : 'badge-red');
-        el.innerHTML += `
-            <div class="listing-card">
-                <button class="fav-btn" onclick="toggleFavorito(this)"><i class="fa-regular fa-heart"></i></button>
-                <img src="${m.imagem}" alt="${m.titulo}" class="card-img">
-                <div class="card-content">
-                    <span class="badge-status ${badgeClass}">
-                        <span class="status-dot ${m.statusCor}"></span> ${m.status}
-                    </span>
-                    <h5 class="card-title">${m.titulo}</h5>
-                    <p class="card-location"><i class="fa-solid fa-location-dot"></i> ${m.cidade}</p>
-                    <div class="card-features">
-                        <span><i class="fa-solid fa-bed"></i> ${m.detalhes[0]}</span>
-                        <span><i class="fa-solid fa-couch"></i> ${m.detalhes[1]}</span>
-                        <span><i class="fa-solid fa-wifi"></i> ${m.detalhes[2]}</span>
-                    </div>
-                    <div class="card-footer">
-                        <span class="card-price">${m.preco}</span>
-                        <button class="btn-detalhes" onclick="abrirModal(${m.id})">Ver detalhes +</button>
-                    </div>
+    if (!lista.length) { el.innerHTML = `<p style="grid-column:1/-1; color:#64748b; text-align:center; padding:20px;">Nenhuma moradia encontrada.</p>`; return; }
+    el.innerHTML = lista.map(m => {
+        const fav = appState.favoritos.includes(m.id);
+        const b = { green: 'badge-green', yellow: 'badge-yellow' }[m.statusCor] || 'badge-red';
+        return `
+        <div class="listing-card">
+            <button class="fav-btn ${fav ? 'active' : ''}" onclick="toggleFavorito(this, ${m.id})"><i class="fa-${fav ? 'solid' : 'regular'} fa-heart"></i></button>
+            <img src="${m.imagem}" alt="${esc(m.titulo)}" class="card-img">
+            <div class="card-content">
+                <span class="badge-status ${b}"><span class="status-dot ${m.statusCor}"></span> ${m.status}</span>
+                <h5 class="card-title">${esc(m.titulo)}</h5>
+                <p class="card-location"><i class="fa-solid fa-location-dot"></i> ${esc(m.cidade)}</p>
+                <div class="card-features">
+                    <span><i class="fa-solid fa-bed"></i> ${m.detalhes[0]}</span>
+                    <span><i class="fa-solid fa-couch"></i> ${m.detalhes[1]}</span>
+                    <span><i class="fa-solid fa-wifi"></i> ${m.detalhes[2]}</span>
+                </div>
+                <div class="card-footer">
+                    <span class="card-price">${esc(m.preco)}</span>
+                    <button class="btn-detalhes" onclick="abrirModal(${m.id})">Ver detalhes +</button>
                 </div>
             </div>
-        `;
-    });
+        </div>`;
+    }).join('');
 }
 
+function toggleFavorito(btn, id) {
+    const i = appState.favoritos.indexOf(id);
+    if (i >= 0) appState.favoritos.splice(i, 1); else appState.favoritos.push(id);
+    salvarEstado();
+    if (appState.paginaAtual === 'favoritos') return renderizarFavoritos(document.getElementById('main-content'));
+    btn.classList.toggle('active');
+    btn.querySelector('i').className = i >= 0 ? 'fa-regular fa-heart' : 'fa-solid fa-heart';
+}
+
+function renderizarFavoritos(container) {
+    const lista = appState.moradias.filter(m => appState.favoritos.includes(m.id));
+    container.innerHTML = `
+        <div class="card-box"><h3><i class="fa-solid fa-heart" style="color:#ef4444;"></i> Meus favoritos (${lista.length})</h3></div>
+        ${lista.length ? '<div class="cards-grid" id="fav-cards"></div>' : vazio('fa-heart', 'Você ainda não favoritou nenhuma moradia.', '<button class="btn-primary" onclick="navegarPara(\'buscar\')">Buscar moradia</button>')}`;
+    if (lista.length) renderizarCards(lista, 'fav-cards');
+}
+
+// BUSCA (filtros funcionando: cidade, universidade, tipo, preço máximo e ordenação)
 function executarBuscaHome(e) {
     e.preventDefault();
+    appState.filtros = {
+        cidade: document.getElementById('home-cidade').value,
+        uni: document.getElementById('home-uf').value,
+        tipo: document.getElementById('home-tipo').value
+    };
     navegarPara('buscar');
 }
 
-// 2. TELA BUSCAR
 function renderizarBusca(container) {
+    const f = appState.filtros || {};
     container.innerHTML = `
         <section class="search-box">
             <h4><i class="fa-solid fa-magnifying-glass"></i> Filtrar Moradias e Vagas</h4>
-            <form class="search-form" onsubmit="filtrarMoradiasPagina(event)">
-                <div class="input-group">
-                    <label>Cidade</label>
-                    <input type="text" id="busca-cidade" placeholder="Ex: Recife, Natal...">
-                </div>
-                <div class="input-group">
-                    <label>Universidade</label>
-                    <input type="text" id="busca-uf" placeholder="Ex: UFPE, UFRN...">
-                </div>
-                <div class="input-group">
-                    <label>Tipo de moradia</label>
-                    <select id="busca-tipo">
-                        <option value="Todos">Todos</option>
-                        <option value="Quarto em apartamento">Quarto em apartamento</option>
-                        <option value="Vaga em república">Vaga em república</option>
-                        <option value="Quarto em casa compartilhada">Quarto em casa compartilhada</option>
-                    </select>
-                </div>
+            <form class="search-form" style="grid-template-columns:repeat(auto-fit, minmax(150px, 1fr));" onsubmit="filtrarMoradiasPagina(event)">
+                <div class="input-group"><label>Cidade</label><input type="text" id="busca-cidade" placeholder="Ex: Recife, Natal..."></div>
+                <div class="input-group"><label>Universidade</label><input type="text" id="busca-uf" placeholder="Ex: UFPE, UFRN..."></div>
+                <div class="input-group"><label>Tipo de moradia</label><select id="busca-tipo">${opcoesTipo(true)}</select></div>
+                <div class="input-group"><label>Preço máximo (R$)</label><input type="number" id="busca-preco" min="0" placeholder="Ex: 800"></div>
+                <div class="input-group"><label>Ordenar por</label>
+                    <select id="busca-ordem"><option value="">Mais recentes</option><option value="menor">Menor preço</option><option value="maior">Maior preço</option></select></div>
                 <button type="submit" class="btn-search">Aplicar Filtro</button>
             </form>
         </section>
-
         <section class="listings-section">
+            <p id="busca-total" style="font-size:13px; color:#64748b;"></p>
             <div class="cards-grid" id="busca-cards-container"></div>
-        </section>
-    `;
-    renderizarCards(appState.moradias, 'busca-cards-container');
+        </section>`;
+    document.getElementById('busca-cidade').value = f.cidade || '';
+    document.getElementById('busca-uf').value = f.uni || '';
+    document.getElementById('busca-tipo').value = f.tipo || 'Todos';
+    appState.filtros = {};
+    filtrarMoradiasPagina();
 }
 
 function filtrarMoradiasPagina(e) {
-    e.preventDefault();
-    const cid = document.getElementById('busca-cidade').value.toLowerCase();
-    const uni = document.getElementById('busca-uf').value.toLowerCase();
-    const tipo = document.getElementById('busca-tipo').value;
+    if (e) e.preventDefault();
+    const val = id => document.getElementById(id).value.toLowerCase().trim();
+    const [cid, uni, tipo, ordem] = [val('busca-cidade'), val('busca-uf'), document.getElementById('busca-tipo').value, val('busca-ordem')];
+    const max = parseFloat(document.getElementById('busca-preco').value) || Infinity;
 
-    const filtrado = appState.moradias.filter(m => {
-        const matchCid = !cid || m.cidade.toLowerCase().includes(cid);
-        const matchUni = !uni || m.cidade.toLowerCase().includes(uni) || m.uf.toLowerCase().includes(uni);
-        const matchTipo = tipo === 'Todos' || m.titulo.toLowerCase().includes(tipo.toLowerCase());
-        return matchCid && matchUni && matchTipo;
-    });
+    const lista = appState.moradias.filter(m =>
+        (!cid || m.cidade.toLowerCase().includes(cid)) &&
+        (!uni || m.cidade.toLowerCase().includes(uni) || m.uf.toLowerCase().includes(uni)) &&
+        (tipo === 'Todos' || (m.tipo || m.titulo).toLowerCase().includes(tipo.toLowerCase())) &&
+        precoNum(m) <= max
+    );
+    if (ordem) lista.sort((a, b) => ordem === 'menor' ? precoNum(a) - precoNum(b) : precoNum(b) - precoNum(a));
 
-    renderizarCards(filtrado, 'busca-cards-container');
+    document.getElementById('busca-total').textContent = `${lista.length} moradia(s) encontrada(s)`;
+    renderizarCards(lista, 'busca-cards-container');
 }
 
-// 3. TELA MENSAGENS / CHAT
-function renderizarMensagens(container) {
-    const conAtiva = appState.conversas[appState.chatAtivo];
-
-    let contatosHTML = '';
-    for (let id in appState.conversas) {
-        const c = appState.conversas[id];
-        const activeClass = id == appState.chatAtivo ? 'active' : '';
-        const ultimaMsg = c.mensagens[c.mensagens.length - 1].texto;
-        contatosHTML += `
-            <div class="contact-item ${activeClass}" onclick="selecionarChat(${id})">
-                <img src="${c.avatar}" class="contact-avatar">
-                <div class="contact-info">
-                    <strong>${c.nome}</strong>
-                    <span>${ultimaMsg.substring(0, 22)}...</span>
-                </div>
-            </div>
-        `;
-    }
-
-    let msgsHTML = '';
-    conAtiva.mensagens.forEach(msg => {
-        const classe = msg.remetente === 'eu' ? 'sent' : 'received';
-        msgsHTML += `<div class="msg-bubble ${classe}">${msg.texto}</div>`;
-    });
-
-    container.innerHTML = `
-        <div class="chat-wrapper">
-            <div class="chat-sidebar">
-                <div class="chat-sidebar-header">Mensagens Diretas</div>
-                <div class="chat-contacts-list">${contatosHTML}</div>
-            </div>
-            <div class="chat-main">
-                <div class="chat-header">
-                    <img src="${conAtiva.avatar}" class="contact-avatar" style="width:30px;height:30px;">
-                    <span>${conAtiva.nome}</span>
-                </div>
-                <div class="chat-messages" id="chat-messages-box">${msgsHTML}</div>
-                <form class="chat-input-area" onsubmit="enviarMensagem(event)">
-                    <input type="text" id="chat-input" class="form-control" placeholder="Digite sua mensagem..." required>
-                    <button type="submit" class="btn-primary"><i class="fa-solid fa-paper-plane"></i></button>
-                </form>
-            </div>
-        </div>
-    `;
-
-    setTimeout(() => {
-        const box = document.getElementById('chat-messages-box');
-        if (box) box.scrollTop = box.scrollHeight;
-    }, 50);
-}
-
-function selecionarChat(id) {
-    appState.chatAtivo = id;
-    renderizarMensagens(document.getElementById('main-content'));
-}
-
-function enviarMensagem(e) {
-    e.preventDefault();
-    const input = document.getElementById('chat-input');
-    const texto = input.value.trim();
-    if (!texto) return;
-
-    appState.conversas[appState.chatAtivo].mensagens.push({ remetente: 'eu', texto });
-    input.value = '';
-    renderizarMensagens(document.getElementById('main-content'));
-
-    setTimeout(() => {
-        appState.conversas[appState.chatAtivo].mensagens.push({
-            remetente: 'outro',
-            texto: "Perfeito! Qualquer dúvida sobre o contrato ou moradia é só me avisar."
-        });
-        if (appState.paginaAtual === 'mensagens') {
-            renderizarMensagens(document.getElementById('main-content'));
-        }
-    }, 1200);
-}
-
-// 4. TELA NOTIFICAÇÕES
-function renderizarNotificacoes(container) {
-    let listHTML = '';
-    appState.notificacoes.forEach(n => {
-        listHTML += `
-            <div style="background:white; padding:15px; border-radius:12px; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center; border-left: 4px solid ${n.lida ? '#cbd5e1' : '#2563eb'};">
-                <div>
-                    <p style="font-size:13px; color:#1e293b; font-weight:${n.lida ? 'normal' : 'bold'}">${n.texto}</p>
-                    <small style="color:#94a3b8; font-size:11px;">${n.tempo}</small>
-                </div>
-                <button class="btn-detalhes" onclick="marcarLida(${n.id})">${n.lida ? 'Lida' : 'Marcar como lida'}</button>
-            </div>
-        `;
-    });
-
-    container.innerHTML = `
-        <div style="background:white; padding:20px; border-radius:16px;">
-            <h3 style="margin-bottom:15px; font-size:18px;">Minhas Notificações</h3>
-            <div>${listHTML}</div>
-        </div>
-    `;
-
-    document.getElementById('notif-dot').style.display = 'none';
-}
-
-function marcarLida(id) {
-    const item = appState.notificacoes.find(n => n.id === id);
-    if (item) item.lida = true;
-    renderizarNotificacoes(document.getElementById('main-content'));
-}
-
-// 5. TELA MEU PERFIL & COMPROVANTE ACADÊMICO
-function renderizarPerfil(container) {
-    container.innerHTML = `
-        <div style="background:white; padding:25px; border-radius:16px; display:flex; flex-direction:column; gap:20px;">
-            <h3 style="font-size:18px; color:#1e293b;">Meu Perfil e Dados Acadêmicos</h3>
-
-            <div class="profile-photo-upload-section">
-                <img id="preview-avatar" src="${appState.usuario.avatar}" class="profile-avatar-preview" alt="Sua Foto">
-                <div>
-                    <label style="font-size:12px; font-weight:600; color:#64748b; display:block; margin-bottom:5px;">Alterar Foto do Perfil</label>
-                    <input type="file" id="prof-photo-file" accept="image/*" onchange="previewFotoPerfil(event)" style="font-size:12px;">
-                </div>
-            </div>
-
-            <form onsubmit="salvarPerfil(event)" style="display:grid; grid-template-columns:1fr 1fr; gap:15px;">
-                <div class="input-group">
-                    <label>Nome Completo</label>
-                    <input type="text" id="prof-nome" value="${appState.usuario.nome}" required>
-                </div>
-                <div class="input-group">
-                    <label>Universidade</label>
-                    <input type="text" id="prof-uni" value="${appState.usuario.universidade}" required>
-                </div>
-                <div class="input-group">
-                    <label>Curso</label>
-                    <input type="text" id="prof-curso" value="${appState.usuario.curso}" required>
-                </div>
-                <div class="input-group">
-                    <label>Período / Ano</label>
-                    <input type="text" id="prof-ano" value="${appState.usuario.ano}" required>
-                </div>
-                <div style="grid-column: span 2;" class="input-group">
-                    <label>Upload de Comprovante de Vínculo Acadêmico (PDF/Imagem)</label>
-                    <input type="file" id="prof-file" accept="image/*,.pdf" style="padding:8px;">
-                </div>
-                <div style="grid-column: span 2;">
-                    <button type="submit" class="btn-primary">Atualizar Perfil e Vínculo</button>
-                </div>
-            </form>
-        </div>
-    `;
-}
-
-function previewFotoPerfil(e) {
-    const file = e.target.files[0];
-    if (file) {
-        const reader = new FileReader();
-        reader.onload = function (evt) {
-            document.getElementById('preview-avatar').src = evt.target.result;
-            appState.usuario.avatar = evt.target.result;
-        };
-        reader.readAsDataURL(file);
-    }
-}
-
-function salvarPerfil(e) {
-    e.preventDefault();
-
-    // Atualiza estado global com novos valores digitados
-    appState.usuario.nome = document.getElementById('prof-nome').value;
-    appState.usuario.universidade = document.getElementById('prof-uni').value;
-    appState.usuario.curso = document.getElementById('prof-curso').value;
-    appState.usuario.ano = document.getElementById('prof-ano').value;
-
-    const fileDocumento = document.getElementById('prof-file').files[0];
-    if (fileDocumento) {
-        appState.usuario.status = 'green';
-        appState.usuario.statusTexto = 'Vínculo verificado';
-        appState.usuario.atualizacao = '2026';
-    }
-
-    // Atualiza imediatamente todos os elementos da página
-    atualizarInterfaceUsuario();
-
-    alert('Perfil atualizado com sucesso!');
-    renderizarPerfil(document.getElementById('main-content'));
-}
-
-function atualizarInterfaceUsuario() {
-    const u = appState.usuario;
-
-    // Atualiza Top Navbar
-    const topName = document.getElementById('top-user-name');
-    const topAvatar = document.getElementById('top-user-avatar');
-    if (topName) topName.innerHTML = `${u.nome} <i class="fa-solid fa-chevron-down"></i>`;
-    if (topAvatar) topAvatar.src = u.avatar;
-
-    // Atualiza Sidebar Direita
-    const sideAvatar = document.getElementById('side-user-avatar');
-    const sideName = document.getElementById('side-user-name');
-    const sideCourse = document.getElementById('side-user-course');
-    const sideYear = document.getElementById('side-user-year');
-
-    if (sideAvatar) sideAvatar.src = u.avatar;
-    if (sideName) sideName.innerText = u.nome;
-    if (sideCourse) sideCourse.innerText = `${u.universidade} - ${u.curso}`;
-    if (sideYear) sideYear.innerHTML = `<i class="fa-solid fa-user-graduate"></i> ${u.ano}`;
-
-    // Status do Vínculo
-    const display = document.getElementById('user-status-display');
-    const textDisplay = document.getElementById('status-text-display');
-    const dateDisplay = document.getElementById('status-date-display');
-    const dotDisplay = document.getElementById('status-dot-display');
-
-    if (display && textDisplay && dateDisplay && dotDisplay) {
-        textDisplay.innerText = u.statusTexto;
-        dateDisplay.innerText = `Documento atualizado em ${u.atualizacao}`;
-        display.className = `status-badge ${u.status === 'green' ? 'badge-green' : 'badge-yellow'}`;
-        dotDisplay.className = `status-dot ${u.status}`;
-    }
-}
-
-// 6. TELA MEUS ANÚNCIOS (CRIAR VAGA)
+// ANÚNCIOS (com universidade, tipo e foto)
 function renderizarAnuncios(container) {
+    const u = appState.usuario;
     container.innerHTML = `
-        <div style="background:white; padding:25px; border-radius:16px;">
+        <div class="card-box">
             <h3 style="margin-bottom:15px;">Cadastrar Nova Moradia / Vaga</h3>
             <form onsubmit="cadastrarVaga(event)" style="display:flex; flex-direction:column; gap:15px;">
-                <div class="input-group">
-                    <label>Título da Vaga</label>
-                    <input type="text" id="vaga-titulo" placeholder="Ex: Quarto individual perto do centro" required>
-                </div>
-                <div class="input-group">
-                    <label>Cidade e Bairro</label>
-                    <input type="text" id="vaga-cidade" placeholder="Ex: Recife, PE - Boa Vista" required>
-                </div>
-                <div class="input-group">
-                    <label>Preço (R$ / mês)</label>
-                    <input type="text" id="vaga-preco" placeholder="Ex: R$ 750/mês" required>
-                </div>
-                <div class="input-group">
-                    <label>Descrição Detalhada</label>
-                    <textarea id="vaga-desc" class="form-control" rows="3" placeholder="Descreva os diferenciais da moradia..." required></textarea>
-                </div>
+                <div class="input-group"><label>Título da Vaga</label><input type="text" id="vaga-titulo" placeholder="Ex: Kitnet perto do campus" required></div>
+                <div class="input-group"><label>Tipo de moradia</label><select id="vaga-tipo">${opcoesTipo(false)}</select></div>
+                <div class="input-group"><label>Cidade e Bairro</label><input type="text" id="vaga-cidade" placeholder="Ex: Natal, RN - Lagoa Nova" required></div>
+                <div class="input-group"><label>Universidade próxima</label><input type="text" id="vaga-uni" value="${esc(u.universidade)}" required></div>
+                <div class="input-group"><label>Preço (R$ / mês)</label><input type="number" id="vaga-preco" min="0" placeholder="Ex: 750" required></div>
+                <div class="input-group"><label>Descrição Detalhada</label><textarea id="vaga-desc" class="form-control" rows="3" placeholder="Descreva os diferenciais da moradia..." required></textarea></div>
+                <div class="input-group"><label>Foto (opcional, até 800 KB)</label><input type="file" id="vaga-foto" accept="image/*"></div>
                 <button type="submit" class="btn-primary" style="width:200px;">Publicar Anúncio</button>
             </form>
-        </div>
-    `;
+        </div>`;
 }
 
 function cadastrarVaga(e) {
     e.preventDefault();
-    const novaVaga = {
-        id: Date.now(),
-        titulo: document.getElementById('vaga-titulo').value,
-        cidade: document.getElementById('vaga-cidade').value,
-        uf: "UFPE",
-        status: "Vínculo verificado",
-        statusCor: "green",
-        detalhes: ["1 vaga", "Mobiliado", "Wi-Fi"],
-        preco: document.getElementById('vaga-preco').value,
-        imagem: "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?q=80&w=500",
-        descricao: document.getElementById('vaga-desc').value,
-        contato: appState.usuario.nome
+    const v = id => document.getElementById(id).value.trim();
+    const salvar = img => {
+        appState.moradias.unshift({
+            id: Date.now(), criada: true, titulo: v('vaga-titulo'), tipo: v('vaga-tipo'), cidade: v('vaga-cidade'), uf: v('vaga-uni'),
+            status: appState.usuario.statusTexto, statusCor: appState.usuario.status,
+            detalhes: ['1 vaga', 'Mobiliado', 'Wi-Fi'], preco: `R$ ${v('vaga-preco')}/mês`, imagem: img,
+            descricao: v('vaga-desc'), contato: `${appState.usuario.nome} (${appState.usuario.universidade})`
+        });
+        salvarEstado();
+        alert('Vaga publicada com sucesso!');
+        navegarPara('inicio');
     };
-
-    appState.moradias.unshift(novaVaga);
-    alert('Vaga publicada com sucesso!');
-    navegarPara('inicio');
+    const foto = document.getElementById('vaga-foto').files[0];
+    if (!foto) return salvar(IMG_PADRAO);
+    if (foto.size > 800 * 1024) return alert('Foto muito grande. Use uma imagem de até 800 KB.');
+    const r = new FileReader();
+    r.onload = ev => salvar(ev.target.result);
+    r.readAsDataURL(foto);
 }
 
-// 7. TELAS SECUNDÁRIAS (AVALIAÇÕES & CONFIGURAÇÕES)
-function renderizarAvaliacoes(container) {
+// DIVISÃO DE DESPESAS
+function renderizarDespesas(container) {
+    const d = Object.assign({ aluguel: 0, condominio: 0, agua: 0, luz: 0, internet: 0, pessoas: 2 }, appState.despesas);
+    const campos = [['aluguel', 'Aluguel', 'fa-house'], ['condominio', 'Condomínio', 'fa-building'], ['agua', 'Água', 'fa-droplet'], ['luz', 'Luz', 'fa-bolt'], ['internet', 'Internet', 'fa-wifi']];
     container.innerHTML = `
-        <div style="background:white; padding:25px; border-radius:16px;">
-            <h3 style="margin-bottom:15px;">Avaliações e Recomendações</h3>
-            <div style="border-bottom:1px solid #e2e8f0; padding-bottom:10px; margin-bottom:10px;">
-                <strong style="font-size:14px;">Lucas Medeiros (UFRN)</strong>
-                <p style="font-size:12px; color:#64748b;">"Excelente colega de apartamento! Muito organizada e responsável com as contas." ★★★★★</p>
+        <div class="card-box">
+            <h3 style="margin-bottom:5px;"><i class="fa-solid fa-calculator"></i> Divisão de despesas</h3>
+            <p style="font-size:12px; color:#64748b; margin-bottom:18px;">Informe os valores do mês e veja quanto cada morador paga.</p>
+            <div class="despesas-grid">
+                ${campos.map(([k, nome, ic]) => `<div class="input-group"><label><i class="fa-solid ${ic}"></i> ${nome} (R$)</label><input type="number" min="0" step="0.01" id="dp-${k}" value="${d[k]}" oninput="calcularDespesas()"></div>`).join('')}
+                <div class="input-group"><label><i class="fa-solid fa-users"></i> Moradores</label><input type="number" min="1" step="1" id="dp-pessoas" value="${d.pessoas}" oninput="calcularDespesas()"></div>
             </div>
-        </div>
-    `;
+            <div id="dp-resultado" class="dp-resultado"></div>
+        </div>`;
+    calcularDespesas();
 }
 
+function calcularDespesas() {
+    const n = id => parseFloat(document.getElementById('dp-' + id)?.value) || 0;
+    const chaves = ['aluguel', 'condominio', 'agua', 'luz', 'internet'];
+    const pessoas = Math.max(1, Math.floor(n('pessoas')));
+    const total = chaves.reduce((s, k) => s + n(k), 0);
+    appState.despesas = Object.fromEntries([...chaves, 'pessoas'].map(k => [k, n(k)]));
+    document.getElementById('dp-resultado').innerHTML = `
+        <div><span>Total do mês</span><strong>${brl(total)}</strong></div>
+        <div><span>Cada um paga (${pessoas})</span><strong style="color:#2563eb;">${brl(total / pessoas)}</strong></div>`;
+    salvarEstado();
+}
+
+// AVALIAÇÕES (com estrelas e comentário)
+function renderizarAvaliacoes(container) {
+    const estrelas = n => '★'.repeat(n) + '☆'.repeat(5 - n);
+    const exemplo = { autor: 'Lucas Medeiros (UFRN)', sobre: 'Colega de apartamento', nota: 5, texto: 'Excelente colega de apartamento! Muito organizada e responsável com as contas.' };
+    const lista = [...appState.avaliacoes, exemplo].map(a => `
+        <div style="border-bottom:1px solid #e2e8f0; padding:12px 0;">
+            <strong style="font-size:14px;">${esc(a.autor)}</strong>
+            <span style="color:#f59e0b; margin-left:8px;">${estrelas(a.nota)}</span>
+            <p style="font-size:11px; color:#94a3b8;">Sobre: ${esc(a.sobre)}</p>
+            <p style="font-size:13px; color:#475569; margin-top:4px;">${esc(a.texto)}</p>
+        </div>`).join('');
+    container.innerHTML = `
+        <div class="card-box">
+            <h3 style="margin-bottom:15px;">Deixar uma avaliação</h3>
+            <form onsubmit="publicarAvaliacao(event)" style="display:grid; grid-template-columns:1fr 160px; gap:12px;">
+                <div class="input-group"><label>Sobre quem ou qual moradia?</label><input id="av-sobre" required placeholder="Ex: Kitnet da Rua X"></div>
+                <div class="input-group"><label>Nota</label><select id="av-nota">${[5, 4, 3, 2, 1].map(n => `<option value="${n}">${estrelas(n)}</option>`).join('')}</select></div>
+                <div class="input-group" style="grid-column:1/-1;"><label>Comentário</label><textarea id="av-texto" class="form-control" rows="3" required></textarea></div>
+                <div><button class="btn-primary" type="submit">Publicar avaliação</button></div>
+            </form>
+        </div>
+        <div class="card-box"><h3 style="margin-bottom:5px;">Avaliações e Recomendações</h3>${lista}</div>`;
+}
+
+function publicarAvaliacao(e) {
+    e.preventDefault();
+    appState.avaliacoes.unshift({
+        autor: appState.usuario.nome, sobre: document.getElementById('av-sobre').value.trim(),
+        nota: parseInt(document.getElementById('av-nota').value, 10), texto: document.getElementById('av-texto').value.trim()
+    });
+    salvarEstado();
+    renderizarAvaliacoes(document.getElementById('main-content'));
+}
+
+// CONFIGURAÇÕES (alterar senha e sair)
 function renderizarConfiguracoes(container) {
     container.innerHTML = `
-        <div style="background:white; padding:25px; border-radius:16px;">
-            <h3 style="margin-bottom:15px;">Configurações da Conta</h3>
+        <div class="card-box" style="display:flex; flex-direction:column; gap:20px;">
+            <h3>Configurações da Conta</h3>
             <label style="display:flex; align-items:center; gap:10px; font-size:13px; cursor:pointer;">
                 <input type="checkbox" checked> Receber alertas por e-mail de novas vagas compatíveis
             </label>
-        </div>
-    `;
+            <form onsubmit="alterarSenha(event)" style="display:flex; flex-direction:column; gap:12px; max-width:340px;">
+                <h4 style="font-size:14px;">Alterar senha</h4>
+                <div class="input-group"><label>Senha atual</label><input type="password" id="sn-atual" required></div>
+                <div class="input-group"><label>Nova senha (mín. 6 caracteres)</label><input type="password" id="sn-nova" minlength="6" required></div>
+                <p id="sn-msg" style="font-size:12px;"></p>
+                <button class="btn-primary" type="submit" style="width:fit-content;">Salvar nova senha</button>
+            </form>
+            <button class="btn-detalhes" style="width:fit-content; padding:9px 16px;" onclick="sair()"><i class="fa-solid fa-right-from-bracket"></i> Sair da conta</button>
+        </div>`;
 }
-
-// 8. TELA EMERGÊNCIA E SEGURANÇA
-function renderizarEmergencia(container) {
-    const servicos = [
-        { numero: '190', nome: 'Polícia Militar', desc: 'Crimes em andamento, ameaças e situações de risco imediato.', icone: 'fa-shield-halved', cor: '#1d4ed8', fundo: '#eff6ff' },
-        { numero: '180', nome: 'Central de Atendimento à Mulher', desc: 'Violência, assédio e orientação. Gratuito e 24h.', icone: 'fa-venus', cor: '#be185d', fundo: '#fdf2f8' },
-        { numero: '100', nome: 'Direitos Humanos', desc: 'Disque 100: denúncias de violações de direitos humanos.', icone: 'fa-hand-holding-heart', cor: '#7c3aed', fundo: '#f5f3ff' },
-        { numero: '192', nome: 'SAMU', desc: 'Emergências médicas e atendimento de urgência.', icone: 'fa-truck-medical', cor: '#dc2626', fundo: '#fef2f2' }
-    ];
-
-    const passos = [
-        {
-            icone: 'fa-person-walking-arrow-right',
-            titulo: 'Priorize sua segurança física',
-            itens: [
-                'Saia do local e vá para um lugar seguro e movimentado (portaria, loja, campus).',
-                'Se houver risco imediato, ligue <strong>190</strong> sem hesitar.',
-                'Avise alguém de confiança (amigo, familiar, colega) e compartilhe sua localização.'
-            ]
-        },
-        {
-            icone: 'fa-camera',
-            titulo: 'Reúna evidências',
-            itens: [
-                'Tire prints de conversas, perfis, anúncios e comprovantes de pagamento.',
-                'Salve e-mails, áudios, fotos e links. Não apague nada, mesmo que sejam desagradáveis.',
-                'Anote data, horário, local e nomes de testemunhas.',
-                'Guarde cópias em mais de um lugar (nuvem ou e-mail).'
-            ]
-        },
-        {
-            icone: 'fa-file-signature',
-            titulo: 'Registre um Boletim de Ocorrência (B.O.)',
-            itens: [
-                'Vá a uma delegacia (para mulheres, procure a <strong>DEAM</strong>, quando houver na cidade).',
-                'Muitos estados têm <strong>Delegacia Virtual</strong> para golpes e fraudes. Procure pelo nome do seu estado.',
-                'Leve documento com foto e todas as evidências reunidas.',
-                'Peça uma cópia do B.O. e guarde o número do registro.'
-            ]
-        },
-        {
-            icone: 'fa-building-columns',
-            titulo: 'Procure a Ouvidoria ou o acolhimento da Universidade',
-            itens: [
-                'Toda universidade possui Ouvidoria. Procure no site da sua instituição.',
-                'Muitas têm também núcleos de acolhimento, assistência estudantil ou comissões de combate ao assédio.',
-                'Leve o B.O. e as evidências para formalizar o relato.',
-                'Para golpes de aluguel, avise também a plataforma onde o anúncio foi publicado.'
-            ]
-        }
-    ];
-
-    const cardsServicos = servicos.map(s => `
-        <div style="background:white; border-radius:16px; padding:20px; box-shadow:0 2px 8px rgba(0,0,0,0.04); border-top:4px solid ${s.cor}; display:flex; flex-direction:column; gap:10px;">
-            <div style="display:flex; align-items:center; gap:12px;">
-                <div style="width:44px; height:44px; border-radius:12px; background:${s.fundo}; color:${s.cor}; display:flex; align-items:center; justify-content:center; font-size:20px;">
-                    <i class="fa-solid ${s.icone}"></i>
-                </div>
-                <div>
-                    <div style="font-size:26px; font-weight:800; color:${s.cor}; line-height:1;">${s.numero}</div>
-                    <div style="font-size:13px; font-weight:700; color:#1e293b;">${s.nome}</div>
-                </div>
-            </div>
-            <p style="font-size:12px; color:#64748b; line-height:1.5; flex:1;">${s.desc}</p>
-            <a href="tel:${s.numero}"
-               style="display:flex; align-items:center; justify-content:center; gap:8px; background:${s.cor}; color:white; padding:11px; border-radius:10px; font-weight:700; font-size:13px; transition:0.2s;"
-               onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'">
-                <i class="fa-solid fa-phone"></i> Ligar para ${s.numero}
-            </a>
-        </div>
-    `).join('');
-
-    const cardsPassos = passos.map((p, i) => `
-        <div style="display:flex; gap:16px; background:white; border-radius:16px; padding:20px; box-shadow:0 2px 8px rgba(0,0,0,0.04);">
-            <div style="display:flex; flex-direction:column; align-items:center; gap:8px;">
-                <div style="width:38px; height:38px; border-radius:50%; background:#2563eb; color:white; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:15px;">${i + 1}</div>
-                <i class="fa-solid ${p.icone}" style="color:#93c5fd; font-size:18px;"></i>
-            </div>
-            <div style="flex:1;">
-                <h4 style="font-size:15px; color:#1e293b; margin-bottom:8px;">${p.titulo}</h4>
-                <ul style="list-style:none; display:flex; flex-direction:column; gap:6px;">
-                    ${p.itens.map(item => `
-                        <li style="font-size:13px; color:#475569; line-height:1.5; display:flex; gap:8px; align-items:flex-start;">
-                            <i class="fa-solid fa-circle-check" style="color:#22c55e; font-size:12px; margin-top:4px;"></i>
-                            <span>${item}</span>
-                        </li>
-                    `).join('')}
-                </ul>
-            </div>
-        </div>
-    `).join('');
-
-    container.innerHTML = `
-        <section style="background:linear-gradient(135deg,#991b1b,#ef4444); color:white; border-radius:16px; padding:30px;">
-            <h2 style="font-size:26px; margin-bottom:6px;"><i class="fa-solid fa-triangle-exclamation"></i> Emergência e Segurança</h2>
-            <p style="font-size:13px; line-height:1.6; max-width:560px; color:#fee2e2;">
-                Telefones públicos de acesso rápido e um guia de orientação para estudantes.
-                Se você está em perigo agora, <strong>ligue 190</strong>.
-            </p>
-        </section>
-
-        <section>
-            <h3 style="font-size:16px; color:#1e293b; margin-bottom:12px;"><i class="fa-solid fa-phone-volume"></i> Ligue agora</h3>
-            <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(210px, 1fr)); gap:15px;">
-                ${cardsServicos}
-            </div>
-        </section>
-
-        <section style="display:flex; flex-direction:column; gap:12px;">
-            <h3 style="font-size:16px; color:#1e293b;"><i class="fa-solid fa-list-check"></i> O que fazer em caso de assédio ou fraude</h3>
-            ${cardsPassos}
-        </section>
-
-        <section style="background:#eff6ff; border:1px solid #bfdbfe; border-radius:16px; padding:18px; display:flex; gap:12px; align-items:flex-start;">
-            <i class="fa-solid fa-circle-info" style="color:#2563eb; font-size:20px; margin-top:2px;"></i>
-            <p style="font-size:12px; color:#1e3a8a; line-height:1.6;">
-                O ConectaUni <strong>não recebe denúncias</strong> por aqui. Esta página apenas orienta e reúne contatos oficiais.
-                Os números 190, 180, 100 e 192 são gratuitos. Em caso de golpe de aluguel, nunca pague adiantado sem visitar o imóvel e confirmar o contrato.
-            </p>
-        </section>
-    `;
-}
-
-// 9. TELA CARTEIRA DE ESTUDANTE (POR ESTADO)
-// Links oficiais por capital, conforme documento enviado.
-// Para adicionar um novo estado, basta incluir um objeto neste array.
-const carteiraEstados = [
-    {
-        sigla: 'AL', estado: 'Alagoas', capital: 'Maceió',
-        portal: 'Vamu Mobilidade',
-        beneficio: 'Passe Livre e créditos estudantis',
-        desc: 'Cadastro e recadastro feitos pelo portal Vamu Mobilidade ou pelo aplicativo Vamu Escolar.',
-        link: 'https://vamumobilidade.com.br/cadastro-e-recadastro-estudantil/'
-    },
-    {
-        sigla: 'BA', estado: 'Bahia', capital: 'Salvador',
-        portal: 'SalvadorCARD',
-        beneficio: 'Meia Passagem Estudantil',
-        desc: 'Agendamento e controle da Meia Passagem Estudantil pelo Portal de Agendamento do SalvadorCARD.',
-        link: 'https://www1.salvadorcard.com.br/servicos/estudante/agendamento1ViaPrincipal.jsf'
-    },
-    {
-        sigla: 'CE', estado: 'Ceará', capital: 'Fortaleza',
-        portal: 'Identidade Estudantil (Etufor)',
-        beneficio: 'Identidade estudantil e biometria',
-        desc: 'Solicitações virtuais de biometria e emissão da identidade estudantil gerenciadas pela Etufor.',
-        link: 'https://idestudantil.fortaleza.ce.gov.br/'
-    },
-    {
-        sigla: 'MA', estado: 'Maranhão', capital: 'São Luís',
-        portal: 'UMES São Luís',
-        beneficio: 'Cartão de transporte e meia-entrada',
-        desc: 'O cartão de transporte é controlado na plataforma Cartão Estudantil SLZ - SET. Para meia-entrada local, a emissão também é feita pela UMES São Luís.',
-        link: 'https://www.umesslz.com/'
-    },
-    {
-        sigla: 'PB', estado: 'Paraíba', capital: 'João Pessoa',
-        portal: 'EstudantePB',
-        beneficio: 'Carteira unificada',
-        desc: 'Solicitação online da carteira unificada do estado pelo portal oficial EstudantePB.',
-        link: 'https://www.estudantepb.com.br/'
-    },
-    {
-        sigla: 'PE', estado: 'Pernambuco', capital: 'Recife',
-        portal: 'Portal do Estudante CIE-PE',
-        beneficio: 'Desconto no cartão VEM',
-        desc: 'No Grande Recife, a CIE-PE é obrigatória para liberar o desconto no cartão VEM.',
-        link: 'https://estudante.ciepe.com.br/'
-    },
-    {
-        sigla: 'PI', estado: 'Piauí', capital: 'Teresina',
-        portal: 'Transmobi Benefícios',
-        beneficio: 'Carteira de transporte estudantil',
-        desc: 'Atualização cadastral e requisição da carteira vinculada ao SETUT pelo portal Transmobi Benefícios.',
-        link: 'https://transmobi.com.br/para-estudantes/'
-    },
-    {
-        sigla: 'RN', estado: 'Rio Grande do Norte', capital: 'Natal',
-        portal: 'Portal do Estudante NuBus',
-        beneficio: 'Chip de transporte e clube de vantagens',
-        desc: 'Emissão eletrônica da carteira com chip de transporte unificado e clube de vantagens, pelo portal ou pelo aplicativo NuBus.',
-        link: 'https://www.nubusnatal.com.br/estudante.html'
-    },
-    {
-        sigla: 'SE', estado: 'Sergipe', capital: 'Aracaju',
-        portal: 'Portal do Usuário AracajuCard',
-        beneficio: 'Cartão Mais Aracaju Escolar',
-        desc: 'Envio de documentos para o cartão Mais Aracaju Escolar pelo Portal do Usuário AracajuCard.',
-        link: 'https://aracajucard.com.br/escolar/cadastramento/'
-    }
-];
-
-// Estados que ainda não têm link cadastrado (aparecem como "em breve")
-const carteiraEstadosPendentes = [
-    'AC', 'AP', 'AM', 'PA', 'RO', 'RR', 'TO',
-    'DF', 'GO', 'MT', 'MS',
-    'ES', 'MG', 'RJ', 'SP',
-    'PR', 'RS', 'SC'
-];
-
-function renderizarCarteira(container) {
-    container.innerHTML = `
-        <section style="background:linear-gradient(135deg,#1e3a8a,#3b82f6); color:white; border-radius:16px; padding:28px; position:relative; overflow:hidden;">
-            <i class="fa-regular fa-id-card" style="position:absolute; right:24px; top:50%; transform:translateY(-50%) rotate(-8deg); font-size:90px; opacity:0.15;"></i>
-            <h2 style="font-size:24px; margin-bottom:6px;"><i class="fa-regular fa-id-card"></i> Carteira de Estudante</h2>
-            <p style="font-size:13px; color:#dbeafe; max-width:540px; line-height:1.6;">
-                Escolha o seu estado e acesse o portal oficial da capital para emitir sua carteira. Ela garante meia passagem no transporte e outros benefícios locais.
-            </p>
-        </section>
-
-        <section class="search-box">
-            <div class="input-group">
-                <label>Buscar estado ou capital</label>
-                <input type="text" id="carteira-busca" placeholder="Ex: Pernambuco, Natal, RN..." oninput="filtrarCarteira()">
-            </div>
-        </section>
-
-        <section id="carteira-lista" style="display:flex; flex-direction:column; gap:20px;"></section>
-
-        <section style="background:#eff6ff; border:1px solid #bfdbfe; border-radius:16px; padding:18px; display:flex; gap:12px; align-items:flex-start;">
-            <i class="fa-solid fa-circle-info" style="color:#2563eb; font-size:20px; margin-top:2px;"></i>
-            <p style="font-size:12px; color:#1e3a8a; line-height:1.6;">
-                Os links levam a sites oficiais de transporte e entidades estudantis. Cada cidade tem suas regras, prazos e documentos exigidos,
-                então confira as instruções no próprio portal antes de iniciar o cadastro.
-            </p>
-        </section>
-    `;
-    filtrarCarteira();
-}
-
-function filtrarCarteira() {
-    const termo = (document.getElementById('carteira-busca')?.value || '').toLowerCase().trim();
-    const lista = document.getElementById('carteira-lista');
-    if (!lista) return;
-
-    const filtrados = carteiraEstados.filter(e =>
-        !termo ||
-        e.estado.toLowerCase().includes(termo) ||
-        e.sigla.toLowerCase().includes(termo) ||
-        e.capital.toLowerCase().includes(termo) ||
-        e.portal.toLowerCase().includes(termo)
-    );
-
-    const pendentes = carteiraEstadosPendentes.filter(s => !termo || s.toLowerCase().includes(termo));
-
-    if (filtrados.length === 0 && pendentes.length === 0) {
-        lista.innerHTML = `<p style="text-align:center; color:#64748b; padding:20px;">Nenhum estado encontrado.</p>`;
-        return;
-    }
-
-    const cardsHTML = filtrados.map(e => `
-        <div style="background:white; border-radius:14px; padding:18px; box-shadow:0 2px 8px rgba(0,0,0,0.04); display:flex; flex-direction:column; gap:10px; border-top:3px solid #2563eb;">
-            <div style="display:flex; align-items:center; gap:12px;">
-                <div style="width:44px; height:44px; border-radius:12px; background:#eff6ff; color:#2563eb; font-weight:800; font-size:15px; display:flex; align-items:center; justify-content:center;">${e.sigla}</div>
-                <div>
-                    <strong style="font-size:14px; color:#1e293b; display:block;">${e.estado}</strong>
-                    <span style="font-size:11px; color:#64748b;"><i class="fa-solid fa-location-dot"></i> ${e.capital}</span>
-                </div>
-            </div>
-            <span style="background:#dcfce7; color:#166534; font-size:11px; font-weight:600; padding:4px 10px; border-radius:12px; width:fit-content;">
-                <i class="fa-solid fa-ticket"></i> ${e.beneficio}
-            </span>
-            <p style="font-size:12px; color:#64748b; line-height:1.5; flex:1;">${e.desc}</p>
-            <a href="${e.link}" target="_blank" rel="noopener noreferrer"
-               style="display:flex; align-items:center; justify-content:center; gap:8px; background:#2563eb; color:white; padding:10px; border-radius:8px; font-size:12px; font-weight:600; transition:0.2s;"
-               onmouseover="this.style.background='#1d4ed8'" onmouseout="this.style.background='#2563eb'">
-                Acessar ${e.portal} <i class="fa-solid fa-arrow-up-right-from-square"></i>
-            </a>
-        </div>
-    `).join('');
-
-    const pendentesHTML = pendentes.length === 0 ? '' : `
-        <div style="background:white; border-radius:14px; padding:18px; box-shadow:0 2px 8px rgba(0,0,0,0.04);">
-            <h4 style="font-size:13px; color:#1e293b; margin-bottom:4px;"><i class="fa-regular fa-clock"></i> Outros estados</h4>
-            <p style="font-size:12px; color:#64748b; margin-bottom:12px;">Links oficiais em breve.</p>
-            <div style="display:flex; flex-wrap:wrap; gap:8px;">
-                ${pendentes.map(s => `<span style="background:#f1f5f9; color:#94a3b8; font-size:12px; font-weight:600; padding:6px 12px; border-radius:8px;">${s}</span>`).join('')}
-            </div>
-        </div>
-    `;
-
-    lista.innerHTML = `
-        ${filtrados.length ? `
-        <div>
-            <h3 style="font-size:14px; color:#1e3a8a; margin-bottom:10px; text-transform:uppercase; letter-spacing:0.5px;">
-                <i class="fa-solid fa-circle-check" style="color:#22c55e;"></i> Links disponíveis (${filtrados.length})
-            </h3>
-            <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(240px, 1fr)); gap:14px;">${cardsHTML}</div>
-        </div>` : ''}
-        ${pendentesHTML}
-    `;
-}
-
-
-// MODAL E INTERAÇÕES DIVERSAS
-function abrirModal(id) {
-    const item = appState.moradias.find(m => m.id === id);
-    if (!item) return;
-
-    const modal = document.getElementById('modal-detalhes');
-    const content = document.getElementById('modal-content');
-
-    content.innerHTML = `
-        <button class="modal-close" onclick="fecharModal()">&times;</button>
-        <img src="${item.imagem}" style="width:100%; height:200px; object-fit:cover; border-radius:12px; margin-bottom:15px;">
-        <span class="badge-status badge-green" style="margin-bottom:10px;">
-            <span class="status-dot green"></span> ${item.status}
-        </span>
-        <h3 style="font-size:18px; margin-bottom:5px;">${item.titulo}</h3>
-        <p style="color:#64748b; font-size:13px; margin-bottom:10px;">${item.cidade}</p>
-        <p style="font-size:13px; color:#334155; margin-bottom:15px;">${item.descricao}</p>
-        <p style="font-weight:bold; font-size:16px; margin-bottom:15px;">${item.preco}</p>
-        <button class="btn-primary" style="width:100%;" onclick="iniciarChatCom('${item.contato}')">Entrar em Contato com ${item.contato}</button>
-    `;
-
-    modal.classList.add('active');
-}
-
-function fecharModal() {
-    document.getElementById('modal-detalhes').classList.remove('active');
-}
-
-function iniciarChatCom(nomeContato) {
-    fecharModal();
-    navegarPara('mensagens');
-}
-
-function toggleFavorito(btn) {
-    btn.classList.toggle('active');
-    const icon = btn.querySelector('i');
-    if (btn.classList.contains('active')) {
-        icon.className = 'fa-solid fa-heart';
-    } else {
-        icon.className = 'fa-regular fa-heart';
-    }
-}
-
-// Inicialização ao carregar a página
-document.addEventListener('DOMContentLoaded', () => {
-    atualizarInterfaceUsuario();
-    navegarPara('inicio');
-});
