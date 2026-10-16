@@ -81,10 +81,10 @@ const appState = {
 // Navegação entre Telas
 function navegarPara(pagina) {
     appState.paginaAtual = pagina;
-    
+
     // Atualizar Navegação Visual
     document.querySelectorAll('.nav-item, .menu-item').forEach(el => el.classList.remove('active'));
-    
+
     const navEl = document.getElementById(`nav-${pagina}`);
     const sideEl = document.getElementById(`side-${pagina}`);
     if (navEl) navEl.classList.add('active');
@@ -114,12 +114,20 @@ function navegarPara(pagina) {
         case 'avaliacoes':
             renderizarAvaliacoes(mainContainer);
             break;
+        case 'carteira':
+            renderizarCarteira(mainContainer);
+            break;
+        case 'emergencia':
+            renderizarEmergencia(mainContainer);
+            break;
         case 'configuracoes':
             renderizarConfiguracoes(mainContainer);
             break;
         default:
             renderizarInicio(mainContainer);
     }
+
+    window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
 // 1. TELA INÍCIO
@@ -195,7 +203,7 @@ function renderizarCards(lista, containerId) {
     el.innerHTML = '';
 
     if (lista.length === 0) {
-        el.innerHTML = `<p style="grid-column: span 3; color: #64748b; text-align: center; padding: 20px;">Nenhuma moradia encontrada.</p>`;
+        el.innerHTML = `<p style="grid-column: 1 / -1; color: #64748b; text-align: center; padding: 20px;">Nenhuma moradia encontrada.</p>`;
         return;
     }
 
@@ -329,7 +337,7 @@ function renderizarMensagens(container) {
 
     setTimeout(() => {
         const box = document.getElementById('chat-messages-box');
-        if(box) box.scrollTop = box.scrollHeight;
+        if (box) box.scrollTop = box.scrollHeight;
     }, 50);
 }
 
@@ -349,11 +357,11 @@ function enviarMensagem(e) {
     renderizarMensagens(document.getElementById('main-content'));
 
     setTimeout(() => {
-        appState.conversas[appState.chatAtivo].mensagens.push({ 
-            remetente: 'outro', 
-            texto: "Perfeito! Qualquer dúvida sobre o contrato ou moradia é só me avisar." 
+        appState.conversas[appState.chatAtivo].mensagens.push({
+            remetente: 'outro',
+            texto: "Perfeito! Qualquer dúvida sobre o contrato ou moradia é só me avisar."
         });
-        if(appState.paginaAtual === 'mensagens') {
+        if (appState.paginaAtual === 'mensagens') {
             renderizarMensagens(document.getElementById('main-content'));
         }
     }, 1200);
@@ -380,13 +388,13 @@ function renderizarNotificacoes(container) {
             <div>${listHTML}</div>
         </div>
     `;
-    
+
     document.getElementById('notif-dot').style.display = 'none';
 }
 
 function marcarLida(id) {
     const item = appState.notificacoes.find(n => n.id === id);
-    if(item) item.lida = true;
+    if (item) item.lida = true;
     renderizarNotificacoes(document.getElementById('main-content'));
 }
 
@@ -395,7 +403,7 @@ function renderizarPerfil(container) {
     container.innerHTML = `
         <div style="background:white; padding:25px; border-radius:16px; display:flex; flex-direction:column; gap:20px;">
             <h3 style="font-size:18px; color:#1e293b;">Meu Perfil e Dados Acadêmicos</h3>
-            
+
             <div class="profile-photo-upload-section">
                 <img id="preview-avatar" src="${appState.usuario.avatar}" class="profile-avatar-preview" alt="Sua Foto">
                 <div>
@@ -437,7 +445,7 @@ function previewFotoPerfil(e) {
     const file = e.target.files[0];
     if (file) {
         const reader = new FileReader();
-        reader.onload = function(evt) {
+        reader.onload = function (evt) {
             document.getElementById('preview-avatar').src = evt.target.result;
             appState.usuario.avatar = evt.target.result;
         };
@@ -447,7 +455,7 @@ function previewFotoPerfil(e) {
 
 function salvarPerfil(e) {
     e.preventDefault();
-    
+
     // Atualiza estado global com novos valores digitados
     appState.usuario.nome = document.getElementById('prof-nome').value;
     appState.usuario.universidade = document.getElementById('prof-uni').value;
@@ -574,6 +582,299 @@ function renderizarConfiguracoes(container) {
         </div>
     `;
 }
+
+// 8. TELA EMERGÊNCIA E SEGURANÇA
+function renderizarEmergencia(container) {
+    const servicos = [
+        { numero: '190', nome: 'Polícia Militar', desc: 'Crimes em andamento, ameaças e situações de risco imediato.', icone: 'fa-shield-halved', cor: '#1d4ed8', fundo: '#eff6ff' },
+        { numero: '180', nome: 'Central de Atendimento à Mulher', desc: 'Violência, assédio e orientação. Gratuito e 24h.', icone: 'fa-venus', cor: '#be185d', fundo: '#fdf2f8' },
+        { numero: '100', nome: 'Direitos Humanos', desc: 'Disque 100: denúncias de violações de direitos humanos.', icone: 'fa-hand-holding-heart', cor: '#7c3aed', fundo: '#f5f3ff' },
+        { numero: '192', nome: 'SAMU', desc: 'Emergências médicas e atendimento de urgência.', icone: 'fa-truck-medical', cor: '#dc2626', fundo: '#fef2f2' }
+    ];
+
+    const passos = [
+        {
+            icone: 'fa-person-walking-arrow-right',
+            titulo: 'Priorize sua segurança física',
+            itens: [
+                'Saia do local e vá para um lugar seguro e movimentado (portaria, loja, campus).',
+                'Se houver risco imediato, ligue <strong>190</strong> sem hesitar.',
+                'Avise alguém de confiança (amigo, familiar, colega) e compartilhe sua localização.'
+            ]
+        },
+        {
+            icone: 'fa-camera',
+            titulo: 'Reúna evidências',
+            itens: [
+                'Tire prints de conversas, perfis, anúncios e comprovantes de pagamento.',
+                'Salve e-mails, áudios, fotos e links. Não apague nada, mesmo que sejam desagradáveis.',
+                'Anote data, horário, local e nomes de testemunhas.',
+                'Guarde cópias em mais de um lugar (nuvem ou e-mail).'
+            ]
+        },
+        {
+            icone: 'fa-file-signature',
+            titulo: 'Registre um Boletim de Ocorrência (B.O.)',
+            itens: [
+                'Vá a uma delegacia (para mulheres, procure a <strong>DEAM</strong>, quando houver na cidade).',
+                'Muitos estados têm <strong>Delegacia Virtual</strong> para golpes e fraudes. Procure pelo nome do seu estado.',
+                'Leve documento com foto e todas as evidências reunidas.',
+                'Peça uma cópia do B.O. e guarde o número do registro.'
+            ]
+        },
+        {
+            icone: 'fa-building-columns',
+            titulo: 'Procure a Ouvidoria ou o acolhimento da Universidade',
+            itens: [
+                'Toda universidade possui Ouvidoria. Procure no site da sua instituição.',
+                'Muitas têm também núcleos de acolhimento, assistência estudantil ou comissões de combate ao assédio.',
+                'Leve o B.O. e as evidências para formalizar o relato.',
+                'Para golpes de aluguel, avise também a plataforma onde o anúncio foi publicado.'
+            ]
+        }
+    ];
+
+    const cardsServicos = servicos.map(s => `
+        <div style="background:white; border-radius:16px; padding:20px; box-shadow:0 2px 8px rgba(0,0,0,0.04); border-top:4px solid ${s.cor}; display:flex; flex-direction:column; gap:10px;">
+            <div style="display:flex; align-items:center; gap:12px;">
+                <div style="width:44px; height:44px; border-radius:12px; background:${s.fundo}; color:${s.cor}; display:flex; align-items:center; justify-content:center; font-size:20px;">
+                    <i class="fa-solid ${s.icone}"></i>
+                </div>
+                <div>
+                    <div style="font-size:26px; font-weight:800; color:${s.cor}; line-height:1;">${s.numero}</div>
+                    <div style="font-size:13px; font-weight:700; color:#1e293b;">${s.nome}</div>
+                </div>
+            </div>
+            <p style="font-size:12px; color:#64748b; line-height:1.5; flex:1;">${s.desc}</p>
+            <a href="tel:${s.numero}"
+               style="display:flex; align-items:center; justify-content:center; gap:8px; background:${s.cor}; color:white; padding:11px; border-radius:10px; font-weight:700; font-size:13px; transition:0.2s;"
+               onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'">
+                <i class="fa-solid fa-phone"></i> Ligar para ${s.numero}
+            </a>
+        </div>
+    `).join('');
+
+    const cardsPassos = passos.map((p, i) => `
+        <div style="display:flex; gap:16px; background:white; border-radius:16px; padding:20px; box-shadow:0 2px 8px rgba(0,0,0,0.04);">
+            <div style="display:flex; flex-direction:column; align-items:center; gap:8px;">
+                <div style="width:38px; height:38px; border-radius:50%; background:#2563eb; color:white; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:15px;">${i + 1}</div>
+                <i class="fa-solid ${p.icone}" style="color:#93c5fd; font-size:18px;"></i>
+            </div>
+            <div style="flex:1;">
+                <h4 style="font-size:15px; color:#1e293b; margin-bottom:8px;">${p.titulo}</h4>
+                <ul style="list-style:none; display:flex; flex-direction:column; gap:6px;">
+                    ${p.itens.map(item => `
+                        <li style="font-size:13px; color:#475569; line-height:1.5; display:flex; gap:8px; align-items:flex-start;">
+                            <i class="fa-solid fa-circle-check" style="color:#22c55e; font-size:12px; margin-top:4px;"></i>
+                            <span>${item}</span>
+                        </li>
+                    `).join('')}
+                </ul>
+            </div>
+        </div>
+    `).join('');
+
+    container.innerHTML = `
+        <section style="background:linear-gradient(135deg,#991b1b,#ef4444); color:white; border-radius:16px; padding:30px;">
+            <h2 style="font-size:26px; margin-bottom:6px;"><i class="fa-solid fa-triangle-exclamation"></i> Emergência e Segurança</h2>
+            <p style="font-size:13px; line-height:1.6; max-width:560px; color:#fee2e2;">
+                Telefones públicos de acesso rápido e um guia de orientação para estudantes.
+                Se você está em perigo agora, <strong>ligue 190</strong>.
+            </p>
+        </section>
+
+        <section>
+            <h3 style="font-size:16px; color:#1e293b; margin-bottom:12px;"><i class="fa-solid fa-phone-volume"></i> Ligue agora</h3>
+            <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(210px, 1fr)); gap:15px;">
+                ${cardsServicos}
+            </div>
+        </section>
+
+        <section style="display:flex; flex-direction:column; gap:12px;">
+            <h3 style="font-size:16px; color:#1e293b;"><i class="fa-solid fa-list-check"></i> O que fazer em caso de assédio ou fraude</h3>
+            ${cardsPassos}
+        </section>
+
+        <section style="background:#eff6ff; border:1px solid #bfdbfe; border-radius:16px; padding:18px; display:flex; gap:12px; align-items:flex-start;">
+            <i class="fa-solid fa-circle-info" style="color:#2563eb; font-size:20px; margin-top:2px;"></i>
+            <p style="font-size:12px; color:#1e3a8a; line-height:1.6;">
+                O ConectaUni <strong>não recebe denúncias</strong> por aqui. Esta página apenas orienta e reúne contatos oficiais.
+                Os números 190, 180, 100 e 192 são gratuitos. Em caso de golpe de aluguel, nunca pague adiantado sem visitar o imóvel e confirmar o contrato.
+            </p>
+        </section>
+    `;
+}
+
+// 9. TELA CARTEIRA DE ESTUDANTE (POR ESTADO)
+// Links oficiais por capital, conforme documento enviado.
+// Para adicionar um novo estado, basta incluir um objeto neste array.
+const carteiraEstados = [
+    {
+        sigla: 'AL', estado: 'Alagoas', capital: 'Maceió',
+        portal: 'Vamu Mobilidade',
+        beneficio: 'Passe Livre e créditos estudantis',
+        desc: 'Cadastro e recadastro feitos pelo portal Vamu Mobilidade ou pelo aplicativo Vamu Escolar.',
+        link: 'https://vamumobilidade.com.br/cadastro-e-recadastro-estudantil/'
+    },
+    {
+        sigla: 'BA', estado: 'Bahia', capital: 'Salvador',
+        portal: 'SalvadorCARD',
+        beneficio: 'Meia Passagem Estudantil',
+        desc: 'Agendamento e controle da Meia Passagem Estudantil pelo Portal de Agendamento do SalvadorCARD.',
+        link: 'https://www1.salvadorcard.com.br/servicos/estudante/agendamento1ViaPrincipal.jsf'
+    },
+    {
+        sigla: 'CE', estado: 'Ceará', capital: 'Fortaleza',
+        portal: 'Identidade Estudantil (Etufor)',
+        beneficio: 'Identidade estudantil e biometria',
+        desc: 'Solicitações virtuais de biometria e emissão da identidade estudantil gerenciadas pela Etufor.',
+        link: 'https://idestudantil.fortaleza.ce.gov.br/'
+    },
+    {
+        sigla: 'MA', estado: 'Maranhão', capital: 'São Luís',
+        portal: 'UMES São Luís',
+        beneficio: 'Cartão de transporte e meia-entrada',
+        desc: 'O cartão de transporte é controlado na plataforma Cartão Estudantil SLZ - SET. Para meia-entrada local, a emissão também é feita pela UMES São Luís.',
+        link: 'https://www.umesslz.com/'
+    },
+    {
+        sigla: 'PB', estado: 'Paraíba', capital: 'João Pessoa',
+        portal: 'EstudantePB',
+        beneficio: 'Carteira unificada',
+        desc: 'Solicitação online da carteira unificada do estado pelo portal oficial EstudantePB.',
+        link: 'https://www.estudantepb.com.br/'
+    },
+    {
+        sigla: 'PE', estado: 'Pernambuco', capital: 'Recife',
+        portal: 'Portal do Estudante CIE-PE',
+        beneficio: 'Desconto no cartão VEM',
+        desc: 'No Grande Recife, a CIE-PE é obrigatória para liberar o desconto no cartão VEM.',
+        link: 'https://estudante.ciepe.com.br/'
+    },
+    {
+        sigla: 'PI', estado: 'Piauí', capital: 'Teresina',
+        portal: 'Transmobi Benefícios',
+        beneficio: 'Carteira de transporte estudantil',
+        desc: 'Atualização cadastral e requisição da carteira vinculada ao SETUT pelo portal Transmobi Benefícios.',
+        link: 'https://transmobi.com.br/para-estudantes/'
+    },
+    {
+        sigla: 'RN', estado: 'Rio Grande do Norte', capital: 'Natal',
+        portal: 'Portal do Estudante NuBus',
+        beneficio: 'Chip de transporte e clube de vantagens',
+        desc: 'Emissão eletrônica da carteira com chip de transporte unificado e clube de vantagens, pelo portal ou pelo aplicativo NuBus.',
+        link: 'https://www.nubusnatal.com.br/estudante.html'
+    },
+    {
+        sigla: 'SE', estado: 'Sergipe', capital: 'Aracaju',
+        portal: 'Portal do Usuário AracajuCard',
+        beneficio: 'Cartão Mais Aracaju Escolar',
+        desc: 'Envio de documentos para o cartão Mais Aracaju Escolar pelo Portal do Usuário AracajuCard.',
+        link: 'https://aracajucard.com.br/escolar/cadastramento/'
+    }
+];
+
+// Estados que ainda não têm link cadastrado (aparecem como "em breve")
+const carteiraEstadosPendentes = [
+    'AC', 'AP', 'AM', 'PA', 'RO', 'RR', 'TO',
+    'DF', 'GO', 'MT', 'MS',
+    'ES', 'MG', 'RJ', 'SP',
+    'PR', 'RS', 'SC'
+];
+
+function renderizarCarteira(container) {
+    container.innerHTML = `
+        <section style="background:linear-gradient(135deg,#1e3a8a,#3b82f6); color:white; border-radius:16px; padding:28px; position:relative; overflow:hidden;">
+            <i class="fa-regular fa-id-card" style="position:absolute; right:24px; top:50%; transform:translateY(-50%) rotate(-8deg); font-size:90px; opacity:0.15;"></i>
+            <h2 style="font-size:24px; margin-bottom:6px;"><i class="fa-regular fa-id-card"></i> Carteira de Estudante</h2>
+            <p style="font-size:13px; color:#dbeafe; max-width:540px; line-height:1.6;">
+                Escolha o seu estado e acesse o portal oficial da capital para emitir sua carteira. Ela garante meia passagem no transporte e outros benefícios locais.
+            </p>
+        </section>
+
+        <section class="search-box">
+            <div class="input-group">
+                <label>Buscar estado ou capital</label>
+                <input type="text" id="carteira-busca" placeholder="Ex: Pernambuco, Natal, RN..." oninput="filtrarCarteira()">
+            </div>
+        </section>
+
+        <section id="carteira-lista" style="display:flex; flex-direction:column; gap:20px;"></section>
+
+        <section style="background:#eff6ff; border:1px solid #bfdbfe; border-radius:16px; padding:18px; display:flex; gap:12px; align-items:flex-start;">
+            <i class="fa-solid fa-circle-info" style="color:#2563eb; font-size:20px; margin-top:2px;"></i>
+            <p style="font-size:12px; color:#1e3a8a; line-height:1.6;">
+                Os links levam a sites oficiais de transporte e entidades estudantis. Cada cidade tem suas regras, prazos e documentos exigidos,
+                então confira as instruções no próprio portal antes de iniciar o cadastro.
+            </p>
+        </section>
+    `;
+    filtrarCarteira();
+}
+
+function filtrarCarteira() {
+    const termo = (document.getElementById('carteira-busca')?.value || '').toLowerCase().trim();
+    const lista = document.getElementById('carteira-lista');
+    if (!lista) return;
+
+    const filtrados = carteiraEstados.filter(e =>
+        !termo ||
+        e.estado.toLowerCase().includes(termo) ||
+        e.sigla.toLowerCase().includes(termo) ||
+        e.capital.toLowerCase().includes(termo) ||
+        e.portal.toLowerCase().includes(termo)
+    );
+
+    const pendentes = carteiraEstadosPendentes.filter(s => !termo || s.toLowerCase().includes(termo));
+
+    if (filtrados.length === 0 && pendentes.length === 0) {
+        lista.innerHTML = `<p style="text-align:center; color:#64748b; padding:20px;">Nenhum estado encontrado.</p>`;
+        return;
+    }
+
+    const cardsHTML = filtrados.map(e => `
+        <div style="background:white; border-radius:14px; padding:18px; box-shadow:0 2px 8px rgba(0,0,0,0.04); display:flex; flex-direction:column; gap:10px; border-top:3px solid #2563eb;">
+            <div style="display:flex; align-items:center; gap:12px;">
+                <div style="width:44px; height:44px; border-radius:12px; background:#eff6ff; color:#2563eb; font-weight:800; font-size:15px; display:flex; align-items:center; justify-content:center;">${e.sigla}</div>
+                <div>
+                    <strong style="font-size:14px; color:#1e293b; display:block;">${e.estado}</strong>
+                    <span style="font-size:11px; color:#64748b;"><i class="fa-solid fa-location-dot"></i> ${e.capital}</span>
+                </div>
+            </div>
+            <span style="background:#dcfce7; color:#166534; font-size:11px; font-weight:600; padding:4px 10px; border-radius:12px; width:fit-content;">
+                <i class="fa-solid fa-ticket"></i> ${e.beneficio}
+            </span>
+            <p style="font-size:12px; color:#64748b; line-height:1.5; flex:1;">${e.desc}</p>
+            <a href="${e.link}" target="_blank" rel="noopener noreferrer"
+               style="display:flex; align-items:center; justify-content:center; gap:8px; background:#2563eb; color:white; padding:10px; border-radius:8px; font-size:12px; font-weight:600; transition:0.2s;"
+               onmouseover="this.style.background='#1d4ed8'" onmouseout="this.style.background='#2563eb'">
+                Acessar ${e.portal} <i class="fa-solid fa-arrow-up-right-from-square"></i>
+            </a>
+        </div>
+    `).join('');
+
+    const pendentesHTML = pendentes.length === 0 ? '' : `
+        <div style="background:white; border-radius:14px; padding:18px; box-shadow:0 2px 8px rgba(0,0,0,0.04);">
+            <h4 style="font-size:13px; color:#1e293b; margin-bottom:4px;"><i class="fa-regular fa-clock"></i> Outros estados</h4>
+            <p style="font-size:12px; color:#64748b; margin-bottom:12px;">Links oficiais em breve.</p>
+            <div style="display:flex; flex-wrap:wrap; gap:8px;">
+                ${pendentes.map(s => `<span style="background:#f1f5f9; color:#94a3b8; font-size:12px; font-weight:600; padding:6px 12px; border-radius:8px;">${s}</span>`).join('')}
+            </div>
+        </div>
+    `;
+
+    lista.innerHTML = `
+        ${filtrados.length ? `
+        <div>
+            <h3 style="font-size:14px; color:#1e3a8a; margin-bottom:10px; text-transform:uppercase; letter-spacing:0.5px;">
+                <i class="fa-solid fa-circle-check" style="color:#22c55e;"></i> Links disponíveis (${filtrados.length})
+            </h3>
+            <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(240px, 1fr)); gap:14px;">${cardsHTML}</div>
+        </div>` : ''}
+        ${pendentesHTML}
+    `;
+}
+
 
 // MODAL E INTERAÇÕES DIVERSAS
 function abrirModal(id) {
