@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ConectaUni - Funcional Total</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- Ícones FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Fonte Inter do Google -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <!-- TOP NAVBAR -->
+    <header class="top-navbar">
+        <div class="logo-container" onclick="navegarPara('inicio')" style="cursor:pointer;">
+            <i class="fa-solid fa-graduation-cap logo-icon"></i>
+            <div>
+                <h1 class="logo-title">ConectaUni</h1>
+                <p class="logo-subtitle">Estudantes conectam estudantes</p>
+            </div>
+        </div>
+
+        <nav class="top-nav">
+            <a href="#" id="nav-inicio" class="nav-item active" onclick="navegarPara('inicio')"><i class="fa-solid fa-house"></i> Início</a>
+            <a href="#" id="nav-buscar" class="nav-item" onclick="navegarPara('buscar')"><i class="fa-solid fa-magnifying-glass"></i> Buscar</a>
+            <a href="#" id="nav-mensagens" class="nav-item" onclick="navegarPara('mensagens')"><i class="fa-regular fa-comment"></i> Mensagens <span class="badge" id="chat-count-badge">2</span></a>
+            <a href="#" id="nav-notificacoes" class="nav-item" onclick="navegarPara('notificacoes')"><i class="fa-regular fa-bell"></i> Notificações <span class="dot" id="notif-dot"></span></a>
+        </nav>
+
+        <button class="btn-dossie no-print" onclick="baixarDossie()" title="Baixar Dossiê de Evidências de Extensão (PDF)"><i class="fa-solid fa-file-pdf"></i> <span>Baixar Dossiê (PDF)</span></button>
+
+        <div class="user-profile-top" onclick="navegarPara('perfil')">
+            <img id="top-user-avatar" src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100" alt="Avatar Usuário">
+            <span id="top-user-name">Ana Souza <i class="fa-solid fa-chevron-down"></i></span>
+        </div>
+    </header>
+
+    <div class="main-layout">
+
+        <!-- SIDEBAR ESQUERDA -->
+        <aside class="sidebar-left">
+            <ul class="menu-list">
+                <li class="menu-item active" id="side-inicio"><a href="#" onclick="navegarPara('inicio')"><i class="fa-solid fa-house"></i> Início</a></li>
+                <li class="menu-item" id="side-perfil"><a href="#" onclick="navegarPara('perfil')"><i class="fa-regular fa-user"></i> Meu perfil</a></li>
+                <li class="menu-item" id="side-buscar"><a href="#" onclick="navegarPara('buscar')"><i class="fa-solid fa-building-user"></i> Buscar moradia</a></li>
+                <li class="menu-item" id="side-anuncios" style="display:none;"><a href="#" onclick="navegarPara('anuncios')"><i class="fa-regular fa-newspaper"></i> Meus anúncios</a></li>
+                <li class="menu-item" id="side-mensagens"><a href="#" onclick="navegarPara('mensagens')"><i class="fa-regular fa-comment"></i> Mensagens <span class="badge" id="chat-count-side">2</span></a></li>
+                <li class="menu-item" id="side-avaliacoes"><a href="#" onclick="navegarPara('avaliacoes')"><i class="fa-regular fa-star"></i> Avaliações</a></li>
+                <li class="menu-item" id="side-carteira"><a href="#" onclick="navegarPara('carteira')"><i class="fa-regular fa-id-card"></i> Carteira de estudante</a></li>
+                <li class="menu-item" id="side-emergencia"><a href="#" onclick="navegarPara('emergencia')"><i class="fa-solid fa-triangle-exclamation"></i> Emergência e Segurança</a></li>
+                <li class="menu-item" id="side-favoritos"><a href="#" onclick="navegarPara('favoritos')"><i class="fa-regular fa-heart"></i> Favoritos</a></li>
+                <li class="menu-item" id="side-despesas"><a href="#" onclick="navegarPara('despesas')"><i class="fa-solid fa-calculator"></i> Divisão de despesas</a></li>
+                <li class="menu-item" id="side-projeto"><a href="#" onclick="navegarPara('projeto')"><i class="fa-solid fa-diagram-project"></i> Sobre o Projeto</a></li>
+                <li class="menu-item" id="side-rede"><a href="#" onclick="navegarPara('rede')"><i class="fa-solid fa-wifi"></i> Rede e Conectividade</a></li>
+                <li class="menu-item" id="side-configuracoes"><a href="#" onclick="navegarPara('configuracoes')"><i class="fa-solid fa-gear"></i> Configurações</a></li>
+                <li class="menu-item" id="side-admin" style="display:none;"><a href="#" onclick="navegarPara('admin')"><i class="fa-solid fa-user-shield"></i> Painel ADM</a></li>
+                <li class="menu-item" id="side-sair"><a href="#" onclick="sair()"><i class="fa-solid fa-right-from-bracket"></i> Sair</a></li>
+            </ul>
+
+            <div class="sidebar-footer-card">
+                <p class="slogan-text">Novos lugares,<br>novas histórias,<br>mesmo propósito:<br><strong>seu futuro!</strong></p>
+                <i class="fa-solid fa-paper-plane plane-icon"></i>
+            </div>
+        </aside>
+
+        <!-- CONTEÚDO DINÂMICO -->
+        <main class="content-area" id="main-content">
+            <!-- Renderizado via JavaScript -->
+        </main>
+
+        <!-- SIDEBAR DIREITA -->
+        <aside class="sidebar-right">
+
+            <!-- Card Perfil -->
+            <div class="profile-card">
+                <img id="side-user-avatar" src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100" alt="Avatar Usuário" class="profile-avatar">
+                <h4 id="side-user-name">Ana Souza</h4>
+                <p class="profile-meta" id="side-user-course">UFPE - Engenharia de Software</p>
+                <p class="profile-meta" id="side-user-year"><i class="fa-solid fa-user-graduate"></i> 2º ano</p>
+
+                <div class="vinculo-block">
+                    <label>Status do vínculo acadêmico</label>
+                    <div class="status-badge badge-green" id="user-status-display">
+                        <span class="status-dot green" id="status-dot-display"></span> <span id="status-text-display">Vínculo verificado</span> <i class="fa-solid fa-chevron-right"></i>
+                    </div>
+                    <small id="status-date-display">Documento atualizado em 2026</small>
+                </div>
+
+                <ul class="user-menu-list">
+                    <li><a href="#" onclick="navegarPara('perfil')"><i class="fa-regular fa-user"></i> Meu perfil <i class="fa-solid fa-chevron-right"></i></a></li>
+                    <li><a href="#" onclick="navegarPara('perfil')"><i class="fa-regular fa-pen-to-square"></i> Editar cadastro <i class="fa-solid fa-chevron-right"></i></a></li>
+                    <li><a href="#" onclick="navegarPara('perfil')"><i class="fa-regular fa-file-lines"></i> Documentos <i class="fa-solid fa-chevron-right"></i></a></li>
+                    <li><a href="#" onclick="navegarPara('avaliacoes')"><i class="fa-regular fa-star"></i> Avaliações <i class="fa-solid fa-chevron-right"></i></a></li>
+                    <li><a href="#" onclick="navegarPara('configuracoes')"><i class="fa-solid fa-headset"></i> Suporte <i class="fa-solid fa-chevron-right"></i></a></li>
+                </ul>
+            </div>
+
+            <!-- Box Informativa -->
+            <div class="info-blue-box">
+                <i class="fa-solid fa-shield-halved blue-icon"></i>
+                <h5>Verificação anual de vínculo acadêmico</h5>
+                <p>Mantenha seu cadastro atualizado e apresente um documento que comprove seu vínculo com a instituição.</p>
+                <a href="#" onclick="navegarPara('perfil')">Saiba mais <i class="fa-solid fa-arrow-right"></i></a>
+            </div>
+
+            <!-- Legenda de Status -->
+            <div class="status-legend-box">
+                <h5>Status do vínculo acadêmico</h5>
+                <div class="legend-item">
+                    <span class="status-dot green"></span>
+                    <div>
+                        <strong>Vínculo verificado</strong>
+                        <p>Documento atualizado</p>
+                    </div>
+                </div>
+                <div class="legend-item">
+                    <span class="status-dot yellow"></span>
+                    <div>
+                        <strong>Renovação pendente</strong>
+                        <p>Prazo para atualizar o documento</p>
+                    </div>
+                </div>
+                <div class="legend-item">
+                    <span class="status-dot red"></span>
+                    <div>
+                        <strong>Vínculo expirado</strong>
+                        <p>Perfil temporariamente bloqueado</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Banner CTA -->
+            <div class="cta-banner">
+                <p>Do seu lugar de origem à sua nova cidade, a gente te conecta!</p>
+                <div class="cta-footer">
+                    <span>Sua próxima conquista começa com uma boa conexão.</span>
+                    <button class="btn-cta" id="btn-cta" onclick="navegarPara('anuncios')">Anunciar Vaga <i class="fa-solid fa-arrow-right"></i></button>
+                </div>
+            </div>
+
+        </aside>
+
+    </div>
+
+    <!-- MODAL DE DETALHES -->
+    <div id="modal-detalhes" class="modal-container">
+        <div class="modal-body" id="modal-content">
+            <!-- Conteúdo injetado via JS -->
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+    <script src="locais.js"></script>
+    <script src="auth.js"></script>
+    <script src="recursos.js"></script>
+    <script src="projeto.js"></script>
+</body>
+</html>
