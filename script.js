@@ -1,3 +1,9 @@
+// Avatar padrão: silhueta cinza neutra (sem foto). O usuário escolhe a própria foto no perfil.
+const AVATAR_PADRAO = 'data:image/svg+xml;utf8,' + encodeURIComponent(
+    "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='#e2e8f0'/>" +
+    "<circle cx='50' cy='38' r='18' fill='#94a3b8'/><path d='M14 100c0-22 16-36 36-36s36 14 36 36z' fill='#94a3b8'/></svg>"
+);
+
 // Estado Global da Aplicação
 const appState = {
     paginaAtual: 'inicio',
@@ -6,7 +12,7 @@ const appState = {
         curso: "Engenharia de Software",
         universidade: "UFPE",
         ano: "2º ano",
-        avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100",
+        avatar: AVATAR_PADRAO,
         status: "green", // green, yellow, red
         statusTexto: "Vínculo verificado",
         atualizacao: "2026"
