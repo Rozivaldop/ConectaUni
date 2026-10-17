@@ -72,6 +72,7 @@ async function enviarAuth(e, modo) {
 function iniciarSessao(email) {
     appState.email = email;
     const d = lerLS(LS.dados(email), {});
+    appState.usuario.avatar = AVATAR_PADRAO; // sem foto até o usuário enviar a sua
     Object.assign(appState.usuario, d.perfil || {});
     appState.favoritos = d.favoritos || [];
     appState.avaliacoes = d.avaliacoes || [];
